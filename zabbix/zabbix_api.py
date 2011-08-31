@@ -117,10 +117,12 @@ class ZabbixAPI(object):
     # r_query_len: max len query history
     # **kwargs: Data to pass to each api module
     def __init__(self, server='http://localhost/zabbix', user=None, passwd=None,
-                 log_level = logging.WARNING, timeout = 10, r_query_len = 10, **kwargs):
+                 log_level = logging.WARNING, timeout = 10, r_query_len = 10,
+                 as_objects = False, **kwargs):
         """ Create an API object.  """
         self._setuplogging()
         self.set_log_level(log_level)
+        self.as_objects=as_objects
         self.server=server
         self.url=server+'/api_jsonrpc.php'
         self.proto=self.server.split("://")[0]
@@ -275,7 +277,27 @@ class ZabbixAPI(object):
                 raise Already_Exists(msg,jobj['error']['code'])
             else:
                 raise ZabbixAPIException(msg,jobj['error']['code'])
+
+        if self.as_objects:
+            jobj = self._adapt_to_object(jobj)
+
         return jobj
+
+    def _adapt_to_object(self, value):
+        """" adapts the returned dictionary as nested objects """
+        if isinstance(value, (list, tuple)):
+            result = list()
+            for element in value:
+                element = self._adapt_to_object(element)
+                result.append(element)
+        elif isinstance(value, dict):
+            result = ZabbixObject()
+            for k, v in value.items():
+                result[k] = self._adapt_to_object(v)
+        else:
+            result = value
+
+        return result
 
     def logged_in(self):
         if self.auth != '':
