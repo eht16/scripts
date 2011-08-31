@@ -62,6 +62,12 @@ class ZabbixAPIException(Exception):
 class Already_Exists(ZabbixAPIException):
     pass
 
+class InvalidCredentialsError(ZabbixAPIException):
+    pass
+
+class NotAuthorizedError(ZabbixAPIException):
+    pass
+
 class InvalidProtoError(ZabbixAPIException):
     """ Recived an invalid proto """
     pass
@@ -275,6 +281,10 @@ class ZabbixAPI(object):
                     jobj['error']['message'], jobj['error']['data'],str(json_obj))
             if re.search(".*already\sexists.*",jobj["error"]["data"],re.I):  # already exists
                 raise Already_Exists(msg,jobj['error']['code'])
+            elif jobj["error"]["data"] == "Login name or password is incorrect":  # invalid login
+                raise InvalidCredentialsError(msg,jobj['error']['code'])
+            elif jobj["error"]["data"] == "Not authorized":  # no auth
+                raise NotAuthorizedError(msg,jobj['error']['code'])
             else:
                 raise ZabbixAPIException(msg,jobj['error']['code'])
 
