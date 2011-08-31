@@ -3065,3 +3065,25 @@ class ZabbixAPIMaintenance(ZabbixAPISubClass):
     @checkauth
     def update(self,**opts):
         return opts
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 4:
+        print >> sys.stderr, u'Usage: %s server username password' % sys.argv[0]
+        exit(1)
+
+    zapi = ZabbixAPI(server=sys.argv[1], log_level=logging.WARNING, as_objects=True)
+    zapi.login(sys.argv[2], sys.argv[3])
+
+    request = ZabbixObject(monitored_hosts=True, output='extend')
+    hosts = zapi.host.get(request)
+
+    if hosts:
+        print len(hosts)
+        host = hosts[0]
+        print type(host)
+        print host.dns, host['dns']
+        print host.ip, host['ip']
+        print host.status, host['status']
+    else:
+        print >> sys.stderr, u'No monitored hosts found'
