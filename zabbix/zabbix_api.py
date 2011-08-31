@@ -66,6 +66,19 @@ class InvalidProtoError(ZabbixAPIException):
     """ Recived an invalid proto """
     pass
 
+class ZabbixObject(dict):
+    """ Object holding request (flat) and response (recursive) data for more Pythonic
+        API usage, this is a normal dictionary plus accessing the dictionary
+        keys as instance attributes.
+    """
+
+    def __init__(self, *a, **kw):
+        dict.__init__(self, *a, **kw)
+        # After the base class' init method has filled ourselves, set our contents as __dict__,
+        # so we can access the dictionary as instance attributes.
+        # This is sort of dirty but efficient as the dictionary contents are not copied.
+        self.__dict__ = self
+
 class ZabbixAPI(object):
     __username__ = ''
     __password__ = ''
